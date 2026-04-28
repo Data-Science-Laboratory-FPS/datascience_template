@@ -1,5 +1,7 @@
 # SQL Extraction Rules
 
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
 This file applies only if the project has a SQL extraction layer.
 
 ## Naming by Domains

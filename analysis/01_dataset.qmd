@@ -1,6 +1,13 @@
 ---
 title: "Dataset Preparation"
+author: "MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla"
 ---
+
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
+## Data Scientist Style Recommendations
+
+Use this notebook as the single source of truth for dataset construction. Keep extraction, minimal harmonization, cohort definition, feature engineering, missingness handling, imputation, validation, and export in clearly separated sections. Read SQL from files when SQL is part of the source layer, preserve long/event-level domain tables before creating wide analytical features, document every aggregation rule, and render an imputation report immediately after imputation. All code, comments, labels, and narrative must be written in English.
 
 ## Setup
 
@@ -19,6 +26,38 @@ Recommended tasks:
 - configure warnings
 - set fixed parameters and study cutoffs
 - define reusable project constants
+- define the unit of analysis early, such as patient, admission, user, transaction, or episode
+- define the expected final dataset object name, usually `final_dataset`
+- create output directories before any write operation
+
+All code, comments, printed labels, and narrative text in this notebook must be written in English.
+
+## Optional SQL Input Layer
+
+This section is used only when one or more source domains are extracted from SQL files at the start of the dataset pipeline.
+
+Typical libraries:
+- pathlib
+- pandas
+- sqlalchemy, duckdb, or a project-specific database connector
+
+Recommended methodology:
+- store SQL files in `analysis/sql/`
+- read SQL from files rather than embedding long SQL strings in the notebook
+- keep SQL focused on extraction, light source cleaning, and reproducible filters
+- keep cohort definitions, outcomes, feature engineering, and imputation in this notebook
+- load each SQL result into a clearly named source-domain object
+- record row counts, unique identifiers, date ranges, and extraction timestamps when available
+
+Typical pattern:
+
+```python
+sql_path = Path("sql/demographics.sql")
+query = sql_path.read_text(encoding="utf-8")
+demographics_raw = pd.read_sql_query(query, connection)
+```
+
+This section may be skipped when all inputs are files such as CSV, parquet, or Excel.
 
 ## Pipeline Functions
 
@@ -34,6 +73,9 @@ Typical functions:
 - source loaders for text, CSV, parquet, or Excel inputs
 - column standardization helpers
 - date parsing helpers
+- text normalization helpers
+- entity identifier cleaning helpers
+- source cache and manifest helpers
 - quality control helpers
 - imputation helpers
 
@@ -41,6 +83,8 @@ Recommended methodology:
 - define all reusable functions here
 - avoid redefining functions later in the notebook
 - keep functions modular and side-effect free
+- prefer structured parsers and stable helper functions over ad hoc string manipulation
+- make cache invalidation explicit when caching raw or harmonized sources
 
 ## Data Sources and Input Management
 
@@ -51,6 +95,7 @@ Typical libraries:
 - pathlib
 
 Possible input sources:
+- SQL files in `analysis/sql/`
 - delimited text files
 - CSV files
 - parquet files
@@ -61,6 +106,9 @@ Recommended methodology:
 - make the source of each dataset explicit
 - load one source domain into one object
 - keep loading logic separate from downstream transformations
+- maintain a source inventory with domain, path or SQL file, expected grain, key columns, and date fields
+- prefer cached parquet copies of large raw sources when repeated parsing is slow
+- write a small manifest for cached sources including source path, size, modification time, row count, and creation time
 
 ## Data Extraction and Import
 
@@ -70,10 +118,13 @@ Typical libraries:
 - pandas
 
 Typical methodology:
+- execute SQL source files from the optional SQL layer when applicable
 - use `pd.read_csv()` for text or CSV files
 - use `pd.read_parquet()` for parquet files
 - use `pd.read_excel()` for Excel files
 - apply only minimal harmonization at import time, such as:
+  - column name normalization
+  - identifier cleaning
   - date parsing
   - type coercion
   - standardization of obvious malformed values
@@ -116,11 +167,25 @@ Typical methodology:
 - define the unit of analysis explicitly
 - validate row counts and identifiers after each merge
 - keep the construction sequence transparent and reproducible
+- keep event-level or longitudinal domain tables before producing wide analytical features
+- document every aggregation rule used to move from long to wide format
 
 Typical checks after each merge:
 - row count changes
 - duplicated identifiers
 - unexpected inflation or loss of records
+
+Recommended long-to-wide rules:
+- `first`: earliest valid event date or first observed state
+- `latest`: most recent valid baseline value
+- `ever`: binary indicator for any qualifying event
+- `count`: number of events, measurements, records, or distinct categories
+- `sum`: cumulative burden or exposure
+- `min` / `max`: first and last observed dates
+
+When possible, retain both:
+- a long table for future time-to-event, trajectory, or sensitivity analyses
+- a wide table for the primary analytical dataset
 
 ## Cohort Definition
 
@@ -135,6 +200,8 @@ Recommended methodology:
 - store counts after each filtering step
 - keep cohort logic separate from feature engineering
 - ensure that every exclusion is reproducible and traceable
+- store cohort flow counts in a structured object such as `cohort_counts`
+- export cohort counts as JSON for downstream CONSORT or flow diagrams
 
 Typical criteria:
 - age restrictions
@@ -165,6 +232,15 @@ Recommended methodology:
 - create features only after the cohort is fixed
 - document derived variables clearly
 - keep domain logic explicit
+- avoid deriving the same variable again in downstream notebooks
+- apply domain prefixes only at final export unless an established project convention requires otherwise
+
+Recommended naming conventions:
+- `{domain}_` prefixes for final exported variables, such as `lab_`, `com_`, `rx_`, or `adm_`
+- `_date` for dates tied to events or measurements
+- `_missing` for missingness indicators created before imputation
+- `_flag` for derived binary quality, eligibility, or rule indicators
+- `_n` or `n_` for counts
 
 ## Missing Data Assessment
 
@@ -179,11 +255,15 @@ Recommended methodology:
 - review missingness in key baseline features
 - check whether missingness differs by subgroup, treatment, or cohort
 - identify variables eligible for imputation and variables that should remain untouched
+- distinguish true missingness from structural absence
+- treat absence of an event record as absence only when the source data model supports that interpretation
+- define imputation eligibility before running any imputation
 
 Typical outputs:
 - missing counts
 - missing percentages
 - optional subgroup-specific missingness summaries
+- list of variables excluded from imputation and the reason
 
 ## Imputation Strategy and Application
 
@@ -215,11 +295,33 @@ Recommended rules:
 - apply the same imputation logic by data type across the project
 - do not impute outcomes
 - do not impute cohort-defining variables unless explicitly justified
+- do not impute event dates whose missingness encodes absence of the event
+- create missingness indicators before imputation
+- use clear missingness thresholds, such as no action for 0%, impute for eligible variables up to a defined threshold, and skip variables above that threshold
 - document which variables are eligible for imputation and which are excluded
+- cache imputed outputs only when the parent dataset fingerprint and imputation rules are also stored
+
+## Imputation Report
+
+This section must be printed or rendered immediately after the imputation step.
+
+Typical contents:
+- variables imputed
+- variables not imputed
+- missing percentage before imputation
+- method applied per variable
+- missingness indicators created
+- variables skipped because they are outcomes, cohort-defining variables, dates, identifiers, constants, or above the missingness threshold
+- any imputation cache hit or cache write
+
+Recommended outputs:
+- compact table sorted by missing percentage
+- counts by action, such as imputed, median-filled, categorical-missing-level, skipped, and untouched
+- explicit statement that outcomes and cohort-defining variables were not imputed
 
 ## Post-Imputation Validation
 
-This section verifies that imputation behaved as expected.
+This section verifies that imputation behaved as expected after the imputation report has been generated.
 
 Typical libraries:
 - pandas
@@ -256,6 +358,8 @@ Typical checks:
 Recommended methodology:
 - run both structural and domain-aware QC
 - keep validation explicit and reproducible
+- fail early or print explicit warnings when key assumptions are violated
+- drop or flag constant variables before statistical testing or modeling
 
 ## CONSORT Diagrams
 
@@ -322,11 +426,16 @@ Typical outputs:
 - parquet
 - CSV
 - optional metadata summaries
+- cohort counts JSON
+- column dictionary or column manifest
+- retained longitudinal tables, when applicable
 
 Recommended methodology:
 - use explicit object names such as `primary_dataset`, `full_dataset`, or `final_dataset`
 - save to stable output paths
 - ensure that exported files correspond exactly to the validated final objects
+- treat `final_dataset` as the single source of truth for downstream notebooks
+- downstream notebooks should load exported artifacts rather than re-deriving variables
 
 ## Session Info
 

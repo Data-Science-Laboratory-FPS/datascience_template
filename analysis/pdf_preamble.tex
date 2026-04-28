@@ -1,0 +1,22 @@
+\usepackage[a4paper,margin=1.6cm]{geometry}
+\usepackage{fancyvrb}
+\usepackage{etoolbox}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{caption}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  commandchars=\\\{\},
+  fontsize=\scriptsize
+}
+\RecustomVerbatimEnvironment{verbatim}{Verbatim}{
+  fontsize=\scriptsize
+}
+\setlength{\emergencystretch}{3em}
+\sloppy
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\AtBeginEnvironment{longtable}{\scriptsize}
+\renewcommand{\arraystretch}{1.15}
+\setkeys{Gin}{width=\linewidth,height=0.82\textheight,keepaspectratio}
+\captionsetup{font=small}

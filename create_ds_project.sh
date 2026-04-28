@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+TEMPLATE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: $0 /path/to/project_root"
   exit 1
@@ -9,17 +11,34 @@ fi
 
 PROJECT_ROOT="$1"
 ANALYSIS_DIR="${PROJECT_ROOT}/analysis"
+SCRIPTS_DIR="${PROJECT_ROOT}/scripts"
 SQL_DIR="${ANALYSIS_DIR}/sql"
 REF_DIR="${ANALYSIS_DIR}/ref"
 TABLES_DIR="${ANALYSIS_DIR}/tables"
 FIGURES_DIR="${ANALYSIS_DIR}/figures"
+RENDERED_DIR="${ANALYSIS_DIR}/rendered"
+RENDER_PARTS_DIR="${ANALYSIS_DIR}/render_pdf_parts"
+RENDER_LOGS_DIR="${ANALYSIS_DIR}/render_logs"
 
 mkdir -p "$PROJECT_ROOT"
 mkdir -p "$ANALYSIS_DIR"
+mkdir -p "$SCRIPTS_DIR"
 mkdir -p "$SQL_DIR"
 mkdir -p "$REF_DIR"
 mkdir -p "$TABLES_DIR"
 mkdir -p "$FIGURES_DIR"
+mkdir -p "$RENDERED_DIR"
+mkdir -p "$RENDER_PARTS_DIR"
+mkdir -p "$RENDER_LOGS_DIR"
+
+if [[ -f "${TEMPLATE_ROOT}/scripts/render_pdf.py" ]]; then
+  cp "${TEMPLATE_ROOT}/scripts/render_pdf.py" "${SCRIPTS_DIR}/render_pdf.py"
+  chmod +x "${SCRIPTS_DIR}/render_pdf.py"
+fi
+
+if [[ -f "${TEMPLATE_ROOT}/analysis/pdf_preamble.tex" ]]; then
+  cp "${TEMPLATE_ROOT}/analysis/pdf_preamble.tex" "${ANALYSIS_DIR}/pdf_preamble.tex"
+fi
 
 cat > "${PROJECT_ROOT}/CLAUDE.md" <<'EOT'
 # PROJECT CONTEXT
@@ -125,3 +144,30 @@ EOT
 touch "${ANALYSIS_DIR}/01_dataset.qmd"
 touch "${ANALYSIS_DIR}/02_tables.qmd"
 touch "${ANALYSIS_DIR}/03_figures.qmd"
+
+# Prefer the maintained template files when this script is run from the
+# datascience_template repository. The heredoc blocks above remain as a minimal
+# fallback if the script is copied elsewhere without the template tree.
+for file in CLAUDE.md README.md; do
+  if [[ -f "${TEMPLATE_ROOT}/${file}" ]]; then
+    cp "${TEMPLATE_ROOT}/${file}" "${PROJECT_ROOT}/${file}"
+  fi
+done
+
+for file in 01_dataset.qmd 02_tables.qmd 03_model.qmd 04_figures.qmd CLAUDE.md pdf_preamble.tex; do
+  if [[ -f "${TEMPLATE_ROOT}/analysis/${file}" ]]; then
+    cp "${TEMPLATE_ROOT}/analysis/${file}" "${ANALYSIS_DIR}/${file}"
+  fi
+done
+
+if [[ -f "${TEMPLATE_ROOT}/analysis/sql/CLAUDE.md" ]]; then
+  cp "${TEMPLATE_ROOT}/analysis/sql/CLAUDE.md" "${SQL_DIR}/CLAUDE.md"
+fi
+
+if [[ -f "${TEMPLATE_ROOT}/analysis/ref/note_cohort_definition.md" ]]; then
+  cp "${TEMPLATE_ROOT}/analysis/ref/note_cohort_definition.md" "${REF_DIR}/note_cohort_definition.md"
+fi
+
+if [[ -f "${ANALYSIS_DIR}/03_figures.qmd" && -f "${ANALYSIS_DIR}/04_figures.qmd" ]]; then
+  rm -f "${ANALYSIS_DIR}/03_figures.qmd"
+fi

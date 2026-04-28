@@ -1,11 +1,103 @@
 ---
 title: "03 Model"
+author: "MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla"
 format: html
 execute:
   echo: true
   warning: false
   message: false
 ---
+
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
+## Data Scientist Style Recommendations
+
+Use this notebook only for model development and validation. Load the analytical dataset exported by `01_dataset.qmd`, choose the modeling strategy according to the scientific question, fit preprocessing steps only within the appropriate training or modeling framework, and export predictions, estimates, diagnostics, and model artifacts for downstream figures. Do not redefine outcomes, cohorts, or feature engineering decisions here. All code, comments, labels, and narrative must be written in English.
+
+## Model Family Guidance
+
+Select the modeling workflow before writing code. The correct validation strategy depends on whether the goal is prediction, explanation, causal estimation, or time-to-event inference.
+
+### Predictive classification models
+
+Use this workflow for binary or multiclass prediction.
+
+Recommended practices:
+- split data into train, validation, and test sets before preprocessing
+- stratify splits by the outcome when appropriate
+- fit imputation, scaling, encoding, and feature selection inside a `Pipeline`
+- tune hyperparameters using cross-validation on the training data only
+- evaluate final performance once on the held-out test set
+- report discrimination, calibration, and clinically relevant threshold metrics
+- export patient-level predictions, predicted probabilities, chosen thresholds, and model objects
+
+Typical metrics:
+- AUROC and precision-recall AUC
+- sensitivity, specificity, PPV, NPV, F1, and balanced accuracy
+- Brier score and calibration slope/intercept
+- confusion matrix at the selected threshold
+
+### Predictive regression models
+
+Use this workflow for continuous outcomes.
+
+Recommended practices:
+- split before preprocessing
+- fit all preprocessing steps on training data only
+- compare simple baseline models against more flexible models
+- report residual diagnostics and error by relevant subgroups
+- avoid interpreting feature importance as causal effects
+
+Typical metrics:
+- MAE, RMSE, R-squared, and calibration plots
+- residual plots and observed-versus-predicted plots
+
+### Causal or treatment-effect models
+
+Use this workflow for treatment, exposure, or policy questions.
+
+Recommended practices:
+- define the estimand before modeling
+- specify confounders using subject-matter knowledge rather than automated selection alone
+- separate propensity, weighting, matching, or adjustment steps from outcome modeling
+- report covariate balance using SMD before and after adjustment
+- use robust standard errors or bootstrap uncertainty when appropriate
+- treat p-values as secondary to effect size, uncertainty, and assumptions
+
+Typical outputs:
+- adjusted effect estimate with confidence interval
+- balance table and Love plot
+- sensitivity analyses for alternative confounder sets or cohort definitions
+
+### Time-to-event models
+
+Use this workflow when both event status and follow-up time matter.
+
+Recommended practices:
+- define index date, event date, censoring date, and follow-up time in `01_dataset.qmd`
+- verify that predictors are measured before or at the index date
+- exclude post-index variables unless explicitly modeling time-varying covariates
+- report censoring, follow-up distribution, and number of events
+- choose Cox, parametric survival, competing-risk, or survival ML models according to the question
+
+Typical metrics and diagnostics:
+- hazard ratios or time ratios when using interpretable survival models
+- concordance index when prediction is a goal
+- calibration at clinically relevant time horizons
+- proportional hazards diagnostics when using Cox models
+
+### Cox proportional hazards models only
+
+The following practices are specific to Cox proportional hazards models and should not be copied blindly to classification, regression, or non-Cox survival models:
+
+- using hazard ratios as the primary effect measure
+- applying rare-level and event-per-level filters before fitting Cox coefficients
+- forcing clinically mandatory covariates such as age or sex into all Cox screening models
+- using age/sex-adjusted univariable Cox screening as a dimension-reduction step
+- retaining all variables that enter the multivariable Cox model rather than applying significance-based backward elimination
+- scaling continuous predictors and labeling effects as `per SD`
+- checking or discussing proportional hazards assumptions
+- exporting Cox coefficient tables, hazard ratio forest plots, adjusted survival curves, and risk-group bounds
 
 ## Setup
 
@@ -20,6 +112,8 @@ Typical libraries:
 Guidelines:
 - load only modeling-related libraries
 - do not perform data transformations here
+- define constants for random seeds, target outcome, identifier columns, and output paths
+- define whether the model is predictive, explanatory, causal, or time-to-event before importing model-specific libraries
 
 ## Load Analytical Dataset
 
@@ -32,6 +126,9 @@ Typical libraries:
 Guidelines:
 - use the single source of truth dataset
 - do not modify the dataset here
+- use explicit file checks for required inputs
+- verify required columns before model construction
+- print sample size, outcome distribution, and key follow-up or grouping summaries
 
 ## Data Splitting
 
@@ -44,6 +141,8 @@ Guidelines:
 - ensure reproducibility with fixed random seeds
 - stratify by outcome when appropriate
 - document split proportions
+- split before imputation, scaling, encoding, feature selection, oversampling, or threshold tuning
+- skip train/test splitting only when the stated goal is inferential modeling on the full eligible cohort, such as a prespecified Cox etiologic model; document that decision explicitly
 
 ## Model Training
 
@@ -57,6 +156,9 @@ Guidelines:
 - train on the training set only
 - use cross-validation for hyperparameter tuning
 - document model specifications
+- compare against a simple baseline model
+- keep preprocessing inside model pipelines when using train/test validation
+- document all feature-selection steps and export exclusion reports when variables are removed
 
 ## Model Validation
 
@@ -70,6 +172,9 @@ Guidelines:
 - evaluate on validation/test sets
 - report standard metrics (AUC, accuracy, etc.)
 - include confidence intervals when possible
+- include calibration for probability models
+- include subgroup performance when clinically or operationally relevant
+- use bootstrap confidence intervals when analytic intervals are not straightforward
 
 ## Model Performance Metrics
 
@@ -83,6 +188,9 @@ Typical outputs:
 Guidelines:
 - include both overall and subgroup performance
 - ensure metrics align with clinical relevance
+- choose metrics that match the model family and target use
+- never report training performance as final performance
+- keep model performance figures in this notebook or export the exact data needed for downstream rendering
 
 ## Model Explainability
 
@@ -96,6 +204,9 @@ Typical outputs:
 Guidelines:
 - focus on clinically interpretable features
 - avoid overfitting explanations
+- distinguish predictive importance from causal interpretation
+- use consistent display names with `02_tables.qmd`
+- export explainability outputs when they are used in figures or reports
 
 ## Export Model Results
 
@@ -109,6 +220,9 @@ Typical formats:
 Guidelines:
 - save predictions for downstream use
 - ensure reproducible model loading
+- export both machine-readable tables and manuscript-ready summaries when needed
+- save model configuration, selected variables, exclusion reports, and random seeds
+- export figure source data rather than forcing downstream notebooks to recompute model logic
 
 ## Session Info
 

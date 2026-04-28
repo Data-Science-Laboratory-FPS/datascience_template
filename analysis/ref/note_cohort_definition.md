@@ -1,5 +1,7 @@
 # Cohort Definition Note
 
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
 ## Purpose
 Define the analytical cohort for this project.
 

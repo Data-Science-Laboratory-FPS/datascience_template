@@ -1,11 +1,18 @@
 ---
 title: "03 Figures"
+author: "MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla"
 format: html
 execute:
   echo: true
   warning: false
   message: false
 ---
+
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
+## Data Scientist Style Recommendations
+
+Use this notebook only to visualize validated outputs from upstream notebooks. Cohort flow counts must match `01_dataset.qmd`, table-aligned figures must match `02_tables.qmd`, and model-performance figures should come from exported `03_model.qmd` results rather than recomputed logic. Keep figure naming centralized, make labels publication-ready, and export one stable file per figure. All code, comments, labels, and narrative must be written in English.
 
 ## Setup
 

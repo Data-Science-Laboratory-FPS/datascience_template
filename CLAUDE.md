@@ -1,5 +1,7 @@
 # PROJECT CONTEXT
 
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
 ## Workflow Standard
 The base standard pipeline is:
 - 01_dataset.qmd: Build the analytical dataset

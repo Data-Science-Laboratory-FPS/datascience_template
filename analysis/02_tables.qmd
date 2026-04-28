@@ -1,11 +1,18 @@
 ---
 title: "02 Tables"
+author: "MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla"
 format: html
 execute:
   echo: true
   warning: false
   message: false
 ---
+
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
+## Data Scientist Style Recommendations
+
+Use this notebook only for tabulation and presentation of analytical artifacts produced upstream. Load `final_dataset` and supporting outputs from `01_dataset.qmd`; do not rebuild cohorts, outcomes, or derived variables here. Keep a central table registry, use defensive variable checks, drop constants before tests, display binary indicators as presence-only `n (%)` rows when appropriate, report continuous variables as median [IQR] by default, and include a methodological footnote in every manuscript-ready table. All code, comments, labels, and narrative must be written in English.
 
 ## Setup
 
@@ -16,11 +23,55 @@ Typical libraries:
 - numpy
 - scipy
 - pathlib
+- tableone or a project-specific descriptive table utility
+- python-docx when manuscript-ready Word tables are required
 
 Guidelines:
 - load only the libraries required for tabulation and descriptive summaries
 - do not perform dataset construction or feature engineering here
 - keep configuration minimal and reproducible
+- all code, comments, printed labels, and narrative text must be written in English
+- create `tables/` before exporting any table
+- define a central table registry before any table is generated
+
+Recommended output registry:
+
+```python
+TABLE_REGISTRY = {
+    "tbl_01_baseline": (1, "Baseline_Characteristics"),
+}
+
+def tbl_fname(key, ext="docx"):
+    n, desc = TABLE_REGISTRY[key]
+    return f"tbl_{n:02d}_{desc}.{ext}"
+```
+
+To reorder or rename a table, edit only the registry.
+
+## Table Helper Functions
+
+This section defines reusable table utilities before any table is generated.
+
+Recommended helpers:
+- `require_file(path, producer)` to fail clearly when an upstream artifact is missing
+- `check_vars(vars_list, df)` to keep only available variables and print missing ones
+- `drop_constant(vars_list, df)` to remove variables with no analytical variance
+- `infer_categorical_vars(df, vars_list, manual_categorical)` to classify categorical variables conservatively
+- display-name helpers for readable labels and acronym restoration
+- export helpers for Word, CSV, Excel, or interactive HTML outputs
+
+Recommended methodology:
+- define helper functions once near the top
+- keep presentation logic here rather than in `01_dataset.qmd`
+- do not redefine cohort, outcome, or feature logic in helper functions
+- print clear warnings for dropped, missing, or constant variables
+
+Suggested defensive checks:
+- verify the grouping variable exists
+- verify selected variables exist
+- drop variables with one or zero non-null unique values before formal testing
+- avoid treating numeric variables as categorical solely because they have few observed values
+- classify numeric binary indicators as categorical only when their names or metadata indicate a flag
 
 ## Load Final Dataset
 
@@ -35,6 +86,11 @@ Guidelines:
 - do not rebuild the dataset in this notebook
 - do not modify cohort definitions or derived variables here
 - confirm that the loaded object matches the final dataset intended for analysis
+- use explicit file checks before loading
+- load optional supporting artifacts only when needed, such as cohort counts, column manifests, at-risk datasets, or sensitivity datasets
+- print dimensions, key outcome counts, and group sizes immediately after loading
+
+This notebook may reshape tables for display, but it must not create new analytical variables whose definitions belong in `01_dataset.qmd`.
 
 ## Cohort Overview
 
@@ -54,6 +110,8 @@ Guidelines:
 - keep this section descriptive
 - ensure that all counts are fully consistent with the final dataset
 - use this section to provide the overall analytical context before detailed tabulation
+- use the saved cohort counts from `01_dataset.qmd` when available
+- do not compute alternative cohort flow counts locally unless this table is explicitly a sensitivity table
 
 ## Table 1 – Baseline Characteristics
 
@@ -61,16 +119,20 @@ This section generates the baseline descriptive table for the analytical cohort.
 
 Recommended methodology:
 - stratify by the main exposure, treatment group, cohort split, or comparison variable
-- summarize continuous variables using mean and standard deviation, or median and interquartile range, depending on distribution and reporting conventions
+- summarize continuous variables using median and interquartile range by default unless the project has a strong reason to use mean and standard deviation
 - summarize categorical variables using counts and percentages
+- treat binary 0/1 indicator variables as presence indicators when appropriate: show only the `1` level as `n (%)`
+- never show a separate `Missing` column by default unless missingness itself is the point of the table
+- preserve missingness handling decisions established in `01_dataset.qmd`
 
 Typical libraries:
 - pandas
 - numpy
 - scipy.stats, only if formal statistical testing is required
+- tableone or equivalent
 
 Optional:
-- t-test or Mann–Whitney test for continuous variables
+- Kruskal-Wallis or Mann-Whitney test for continuous variables
 - chi-square or Fisher exact test for categorical variables
 
 Guidelines:
@@ -78,6 +140,23 @@ Guidelines:
 - p-values should not be overinterpreted in descriptive baseline comparisons
 - formatting should be consistent across all variables
 - missing values should be handled consistently with the definitions established in `01_dataset.qmd`
+- include a footnote stating summary statistics and tests used
+- centralize display names in one rename map
+- restore important acronyms after title-casing generated labels
+- keep variable ordering and section ordering explicit
+
+Recommended default reporting:
+- continuous variables: `Median [IQR]`
+- categorical variables: `n (%)`
+- continuous tests: Kruskal-Wallis for multi-group comparisons or Mann-Whitney for two groups
+- categorical tests: chi-square, with Fisher exact when small counts require it
+
+Recommended binary display convention:
+- for binary indicator variables, replace `0` with missing only in the table display copy
+- generate the table with missing rows hidden
+- retain only the `1` category row
+- relabel that row as `n (%)`
+- do not apply this to variables where both levels carry independent meaning, such as sex or randomized group
 
 ## Standardized Mean Differences
 
@@ -105,6 +184,9 @@ Guidelines:
 - confidence intervals do not need to be included by default in every project
 - if confidence intervals are reported, the same bootstrap strategy should be applied consistently across all variables
 - when available, interpretation should consider both the point estimate and the uncertainty interval
+- drop constants before SMD computation
+- make clear whether SMD is computed on raw, weighted, matched, or imputed data
+- keep SMD tables separate from model performance metrics
 
 ## Outcome Tables
 
@@ -129,6 +211,8 @@ Guidelines:
 - all outcomes must follow the exact definitions established in `01_dataset.qmd`
 - reporting should be clear and clinically interpretable
 - this section should remain descriptive unless the project explicitly requires inferential tabulation here
+- do not redefine or recode the outcome locally
+- if an at-risk or time-to-event dataset is used, load it as an explicit artifact from `01_dataset.qmd`
 
 ## Subgroup Analysis Tables
 
@@ -151,6 +235,8 @@ Guidelines:
 - ensure adequate sample size within each subgroup before reporting detailed results
 - avoid excessive fragmentation that produces unstable summaries
 - use consistent formatting with the main tables
+- use the same helper functions, display names, footnotes, and export conventions as the main table
+- make subgroup denominators explicit
 
 ## Sensitivity Analysis Tables
 
@@ -170,6 +256,8 @@ Guidelines:
 - sensitivity tables should help assess robustness of the primary descriptive findings
 - differences from the main analysis should be easy to interpret
 - assumptions underlying each sensitivity scenario should be explicit
+- use distinct registry keys for each sensitivity output
+- name the sensitivity scenario in the table caption or footnote
 
 ## Export Tables
 
@@ -178,17 +266,32 @@ This section saves the generated tables for downstream reporting and manuscript 
 Typical formats:
 - CSV
 - Excel
-- optional manuscript-ready formats when needed
+- Word `.docx` for manuscript-ready tables when needed
+- standalone interactive HTML when useful for internal review
 
 Typical libraries:
 - pandas
 - pathlib
+- python-docx for Word export
 
 Guidelines:
 - use consistent and descriptive file names
 - save one file per table whenever practical
 - ensure that exported tables correspond exactly to the results shown in the notebook
 - keep output paths explicit and reproducible
+- use the central table registry for file names
+- include a method footnote in manuscript-ready exports
+- keep exported Word tables publication-oriented: landscape layout when needed, stable column widths, readable font size, and minimal borders
+- export interactive HTML tables as self-contained files with inline CSS and JavaScript when possible
+
+Recommended interactive HTML features when applicable:
+- section header rows
+- filter controls for all rows, statistically significant rows, and trend rows
+- p-value coloring
+- optional direction indicators for group differences
+- section headers that hide when no visible rows remain
+
+Interactive tables are for inspection and review. The manuscript-ready table remains the primary reporting artifact unless the project specifies otherwise.
 
 ## Session Info
 

@@ -1,5 +1,7 @@
 # Project Overview
 
+Template author: MAA, Data Science Lab, Progress and Health Public Foundation (FPS), Regional Ministry of Health, Andalucía, Sevilla.
+
 This repository contains a reproducible data science workflow for clinical or health-related data analysis.
 
 ## Project Structure
@@ -8,8 +10,11 @@ This repository contains a reproducible data science workflow for clinical or he
 project_root/
 ├── CLAUDE.md
 ├── README.md
+├── scripts/
+│   └── render_pdf.py
 └── analysis/
     ├── CLAUDE.md
+    ├── pdf_preamble.tex
     ├── ref/
     ├── sql/
     │   └── CLAUDE.md
@@ -55,12 +60,26 @@ project_root/
 2. Execute notebooks in order
 3. Outputs saved in tables/ and figures/
 
+## Combined PDF Report
+
+Render completed Quarto notebooks into one styled PDF:
+
+```bash
+python3 scripts/render_pdf.py all
+```
+
+Useful selections:
+- `python3 scripts/render_pdf.py 1-2`
+- `python3 scripts/render_pdf.py 1,3,4 --title "Project Analysis Report"`
+- `python3 scripts/render_pdf.py all --strict`
+
 ## Output Artifacts
 
 - final_dataset (parquet/CSV)
 - table1_df, smd_table (dataframes)
 - model_results (pickles/predictions)
 - figure_paths (PNG/PDF/SVG)
+- analysis/rendered/analysis_notebooks_combined.pdf
 
 ## Reference Documents
 
