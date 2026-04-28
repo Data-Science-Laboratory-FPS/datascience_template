@@ -28,6 +28,8 @@ Typical libraries:
 Guidelines:
 - load only visualization-related libraries
 - do not perform transformations here
+- create `figures/` before exporting any figure
+- write every exported figure under `figures/`
 
 ## Load Analytical Inputs
 

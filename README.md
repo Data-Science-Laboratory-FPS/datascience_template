@@ -14,12 +14,14 @@ project_root/
 │   └── render_pdf.py
 └── analysis/
     ├── CLAUDE.md
-    ├── pdf_preamble.tex
     ├── ref/
     ├── sql/
     │   └── CLAUDE.md
     ├── tables/
+    ├── model/
     ├── figures/
+    ├── render/
+    │   └── pdf_preamble.tex
     ├── 01_dataset.qmd
     ├── 02_tables.qmd
     ├── 03_model.qmd
@@ -79,7 +81,7 @@ Useful selections:
 - table1_df, smd_table (dataframes)
 - model_results (pickles/predictions)
 - figure_paths (PNG/PDF/SVG)
-- analysis/rendered/analysis_notebooks_combined.pdf
+- analysis/render/pdf/analysis_notebooks_combined.pdf
 
 ## Reference Documents
 

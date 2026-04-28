@@ -9,4 +9,11 @@ Use this folder for Quarto notebooks, shared analysis configuration, and generat
 3. `03_model.qmd`: train, validate, and summarize models.
 4. `04_figures.qmd`: create publication-ready figures.
 
-Common generated folders include `rendered/`, `render_logs/`, and `render_pdf_parts/` when `scripts/render_pdf.py` is used.
+Generated analysis outputs should stay in stable folders:
+
+- `tables/` for exported descriptive and reporting tables.
+- `model/` for model outputs, model tables, and model figures.
+- `figures/` for final publication figures.
+- `render/html/` for Quarto HTML renders and their `*_files/` asset folders.
+- `render/pdf/`, `render/logs/`, and `render/pdf_parts/` for PDF rendering with `scripts/render_pdf.py`.
+- `render/pdf_preamble.tex` for the shared PDF style.

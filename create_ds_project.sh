@@ -15,10 +15,13 @@ SCRIPTS_DIR="${PROJECT_ROOT}/scripts"
 SQL_DIR="${ANALYSIS_DIR}/sql"
 REF_DIR="${ANALYSIS_DIR}/ref"
 TABLES_DIR="${ANALYSIS_DIR}/tables"
+MODEL_DIR="${ANALYSIS_DIR}/model"
 FIGURES_DIR="${ANALYSIS_DIR}/figures"
-RENDERED_DIR="${ANALYSIS_DIR}/rendered"
-RENDER_PARTS_DIR="${ANALYSIS_DIR}/render_pdf_parts"
-RENDER_LOGS_DIR="${ANALYSIS_DIR}/render_logs"
+RENDER_DIR="${ANALYSIS_DIR}/render"
+RENDERED_DIR="${RENDER_DIR}/pdf"
+RENDERED_HTML_DIR="${RENDER_DIR}/html"
+RENDER_PARTS_DIR="${RENDER_DIR}/pdf_parts"
+RENDER_LOGS_DIR="${RENDER_DIR}/logs"
 
 mkdir -p "$PROJECT_ROOT"
 mkdir -p "$ANALYSIS_DIR"
@@ -26,8 +29,11 @@ mkdir -p "$SCRIPTS_DIR"
 mkdir -p "$SQL_DIR"
 mkdir -p "$REF_DIR"
 mkdir -p "$TABLES_DIR"
+mkdir -p "$MODEL_DIR"
 mkdir -p "$FIGURES_DIR"
+mkdir -p "$RENDER_DIR"
 mkdir -p "$RENDERED_DIR"
+mkdir -p "$RENDERED_HTML_DIR"
 mkdir -p "$RENDER_PARTS_DIR"
 mkdir -p "$RENDER_LOGS_DIR"
 
@@ -36,8 +42,8 @@ if [[ -f "${TEMPLATE_ROOT}/scripts/render_pdf.py" ]]; then
   chmod +x "${SCRIPTS_DIR}/render_pdf.py"
 fi
 
-if [[ -f "${TEMPLATE_ROOT}/analysis/pdf_preamble.tex" ]]; then
-  cp "${TEMPLATE_ROOT}/analysis/pdf_preamble.tex" "${ANALYSIS_DIR}/pdf_preamble.tex"
+if [[ -f "${TEMPLATE_ROOT}/analysis/render/pdf_preamble.tex" ]]; then
+  cp "${TEMPLATE_ROOT}/analysis/render/pdf_preamble.tex" "${RENDER_DIR}/pdf_preamble.tex"
 fi
 
 cat > "${PROJECT_ROOT}/CLAUDE.md" <<'EOT'
@@ -110,10 +116,13 @@ project_root/
     ├── sql/
     │   └── CLAUDE.md
     ├── tables/
+    ├── model/
     ├── figures/
+    ├── render/
     ├── 01_dataset.qmd
     ├── 02_tables.qmd
-    └── 03_figures.qmd
+    ├── 03_model.qmd
+    └── 04_figures.qmd
 EOT
 
 cat > "${ANALYSIS_DIR}/CLAUDE.md" <<'EOT'
@@ -122,11 +131,15 @@ cat > "${ANALYSIS_DIR}/CLAUDE.md" <<'EOT'
 ## Notebook Structure
 - 01_dataset.qmd: Data extraction, cleaning, and preparation
 - 02_tables.qmd: Generate tables for analysis
-- 03_figures.qmd: Generate figures
+- 03_model.qmd: Model development and validation
+- 04_figures.qmd: Generate figures
 
 ## Rules
 - Use R or Python for analysis
-- Store outputs in tables/ and figures/
+- Store table outputs in tables/
+- Store model outputs in model/
+- Store final figure outputs in figures/
+- Store Quarto HTML renders in render/html/
 - Reference SQL files from sql/
 - Store references in ref/
 EOT
@@ -143,7 +156,8 @@ EOT
 
 touch "${ANALYSIS_DIR}/01_dataset.qmd"
 touch "${ANALYSIS_DIR}/02_tables.qmd"
-touch "${ANALYSIS_DIR}/03_figures.qmd"
+touch "${ANALYSIS_DIR}/03_model.qmd"
+touch "${ANALYSIS_DIR}/04_figures.qmd"
 
 # Prefer the maintained template files when this script is run from the
 # datascience_template repository. The heredoc blocks above remain as a minimal
@@ -154,7 +168,13 @@ for file in CLAUDE.md README.md; do
   fi
 done
 
-for file in 01_dataset.qmd 02_tables.qmd 03_model.qmd 04_figures.qmd CLAUDE.md pdf_preamble.tex; do
+for file in 01_dataset.qmd 02_tables.qmd 03_model.qmd 04_figures.qmd CLAUDE.md; do
+  if [[ -f "${TEMPLATE_ROOT}/analysis/${file}" ]]; then
+    cp "${TEMPLATE_ROOT}/analysis/${file}" "${ANALYSIS_DIR}/${file}"
+  fi
+done
+
+for file in _quarto.yml .gitignore; do
   if [[ -f "${TEMPLATE_ROOT}/analysis/${file}" ]]; then
     cp "${TEMPLATE_ROOT}/analysis/${file}" "${ANALYSIS_DIR}/${file}"
   fi

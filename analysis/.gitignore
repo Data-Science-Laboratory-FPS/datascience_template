@@ -1,0 +1,7 @@
+/.quarto/
+/*.html
+/*_files/
+/render/html/
+/render/logs/
+/render/pdf/
+/render/pdf_parts/

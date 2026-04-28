@@ -13,10 +13,12 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ANALYSIS_DIR = REPO_ROOT / "analysis"
-RENDERED_DIR = ANALYSIS_DIR / "rendered"
-PDF_PARTS_DIR = ANALYSIS_DIR / "render_pdf_parts"
-LOG_DIR = ANALYSIS_DIR / "render_logs"
-PDF_PREAMBLE = ANALYSIS_DIR / "pdf_preamble.tex"
+RENDER_DIR = ANALYSIS_DIR / "render"
+RENDERED_REL_DIR = Path("render") / "pdf"
+RENDERED_DIR = RENDER_DIR / "pdf"
+PDF_PARTS_DIR = RENDER_DIR / "pdf_parts"
+LOG_DIR = RENDER_DIR / "logs"
+PDF_PREAMBLE = RENDER_DIR / "pdf_preamble.tex"
 DEFAULT_OUTPUT = RENDERED_DIR / "analysis_notebooks_combined.pdf"
 
 
@@ -154,7 +156,7 @@ def render_pdf(notebook: Path, *, quiet: bool = True) -> Path | None:
     if not notebook.exists():
         raise FileNotFoundError(notebook)
 
-    cmd = _pdf_render_cmd(notebook.name, RENDERED_DIR.name)
+    cmd = _pdf_render_cmd(notebook.name, str(RENDERED_REL_DIR))
     print("\nRunning:")
     print(f"  cd {notebook.parent}")
     print(f"  {' '.join(cmd)}")
@@ -179,7 +181,7 @@ def render_pdf(notebook: Path, *, quiet: bool = True) -> Path | None:
         print(f"  ERROR: failed to render {notebook.name}. Log: {log_path.relative_to(REPO_ROOT)}")
         return None
 
-    pdf_path = notebook.parent / RENDERED_DIR.name / f"{notebook.stem}.pdf"
+    pdf_path = notebook.parent / RENDERED_REL_DIR / f"{notebook.stem}.pdf"
     if not pdf_path.exists():
         print(f"  ERROR: Quarto did not create the expected PDF: {pdf_path.relative_to(REPO_ROOT)}")
         return None
@@ -217,7 +219,7 @@ def render_master_toc(selected: list[Path], report_title: str, *, quiet: bool = 
         lines.append("")
         toc_qmd.write_text("\n".join(lines), encoding="utf-8")
 
-        output_dir_name = RENDERED_DIR.name
+        output_dir_name = str(RENDERED_REL_DIR)
         cmd = _pdf_render_cmd(toc_qmd.name, output_dir_name)
         LOG_DIR.mkdir(parents=True, exist_ok=True)
         log_path = LOG_DIR / "00_master_toc.log"
@@ -342,7 +344,7 @@ def main() -> None:
         )
         if args.merge_existing:
             pdf_path = PDF_PARTS_DIR / f"{notebook.stem}.pdf"
-            fallback_pdf_path = notebook.parent / RENDERED_DIR.name / f"{notebook.stem}.pdf"
+            fallback_pdf_path = notebook.parent / RENDERED_REL_DIR / f"{notebook.stem}.pdf"
             if pdf_path.exists():
                 print(f"  OK existing: {pdf_path.relative_to(REPO_ROOT)}")
                 pdf_paths.append(pdf_path)

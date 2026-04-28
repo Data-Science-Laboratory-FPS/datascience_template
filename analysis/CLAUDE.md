@@ -79,19 +79,29 @@ Template author: MAA, Data Science Lab, Progress and Health Public Foundation (F
 - figure_paths
 - analysis_notebooks_combined.pdf
 
+## Output Locations
+- Machine-readable and manuscript-ready table outputs must be written under `analysis/tables/`
+- Model outputs, model tables, and model figures must be written under `analysis/model/`
+- Final publication figure outputs must be written under `analysis/figures/`
+- Quarto HTML renders and their `*_files/` asset folders must stay under `analysis/render/html/`
+- Do not leave generated `.html` files or `*_files/` folders in the top level of `analysis/`
+- Use `analysis/_quarto.yml` as the source of truth for Quarto HTML output location
+
 ## Combined PDF Report
 - Use `python3 scripts/render_pdf.py all` from the project root to render completed `.qmd` notebooks into one PDF
 - Use selections such as `1-2`, `1,3,4`, or `analysis/02_tables.qmd` while notebooks are being developed
-- Logs are written to `analysis/render_logs/`
-- Individual rendered PDF parts are written to `analysis/render_pdf_parts/`
-- The combined report is written to `analysis/rendered/analysis_notebooks_combined.pdf` by default
-- The shared PDF style is controlled by `analysis/pdf_preamble.tex`
+- Logs are written to `analysis/render/logs/`
+- Individual rendered PDF parts are written to `analysis/render/pdf_parts/`
+- The combined report is written to `analysis/render/pdf/analysis_notebooks_combined.pdf` by default
+- The shared PDF style is controlled by `analysis/render/pdf_preamble.tex`
 - Ghostscript `gs` is required for PDF merging
 
 ## Rules
 - Use Python for analysis
 - Store table outputs in tables/
-- Store figure outputs in figures/
+- Store model outputs in model/
+- Store final figure outputs in figures/
+- Store Quarto HTML renders in render/html/
 - Reference SQL files from sql/
 - Store references in ref/
 - Sections in .qmd must include methodological narrative, not just headings

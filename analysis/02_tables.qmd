@@ -32,6 +32,7 @@ Guidelines:
 - keep configuration minimal and reproducible
 - all code, comments, printed labels, and narrative text must be written in English
 - create `tables/` before exporting any table
+- write every exported table, including review HTML tables, under `tables/`
 - define a central table registry before any table is generated
 
 Recommended output registry:
