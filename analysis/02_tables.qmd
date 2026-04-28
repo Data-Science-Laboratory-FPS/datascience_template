@@ -1,0 +1,206 @@
+---
+title: "02 Tables"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Setup
+
+This section initializes the environment for table generation.
+
+Typical libraries:
+- pandas
+- numpy
+- scipy
+- pathlib
+
+Guidelines:
+- load only the libraries required for tabulation and descriptive summaries
+- do not perform dataset construction or feature engineering here
+- keep configuration minimal and reproducible
+
+## Load Final Dataset
+
+This section loads the final analytical dataset generated in `01_dataset.qmd`.
+
+Typical libraries:
+- pandas
+- pathlib
+
+Guidelines:
+- use a single source of truth, such as a parquet or CSV file exported in the previous step
+- do not rebuild the dataset in this notebook
+- do not modify cohort definitions or derived variables here
+- confirm that the loaded object matches the final dataset intended for analysis
+
+## Cohort Overview
+
+This section provides a high-level summary of the analytical cohort.
+
+Typical outputs:
+- total number of observations
+- total number of patients, admissions, or units of analysis, as applicable
+- number of events for key outcomes
+- group sizes for the main comparison variable
+
+Typical libraries:
+- pandas
+- numpy
+
+Guidelines:
+- keep this section descriptive
+- ensure that all counts are fully consistent with the final dataset
+- use this section to provide the overall analytical context before detailed tabulation
+
+## Table 1 – Baseline Characteristics
+
+This section generates the baseline descriptive table for the analytical cohort.
+
+Recommended methodology:
+- stratify by the main exposure, treatment group, cohort split, or comparison variable
+- summarize continuous variables using mean and standard deviation, or median and interquartile range, depending on distribution and reporting conventions
+- summarize categorical variables using counts and percentages
+
+Typical libraries:
+- pandas
+- numpy
+- scipy.stats, only if formal statistical testing is required
+
+Optional:
+- t-test or Mann–Whitney test for continuous variables
+- chi-square or Fisher exact test for categorical variables
+
+Guidelines:
+- baseline tables should primarily describe the cohort rather than test hypotheses
+- p-values should not be overinterpreted in descriptive baseline comparisons
+- formatting should be consistent across all variables
+- missing values should be handled consistently with the definitions established in `01_dataset.qmd`
+
+## Standardized Mean Differences
+
+This section evaluates covariate balance between comparison groups.
+
+Recommended methodology:
+- compute standardized mean differences for baseline covariates
+- report absolute SMD values as the primary balance metric
+- use practical interpretation thresholds such as:
+  - |SMD| < 0.1 for good balance
+  - |SMD| < 0.2 for moderate imbalance
+
+Optional for more rigorous reporting:
+- estimate 95% confidence intervals for SMD using bootstrap resampling
+
+Typical libraries:
+- pandas
+- numpy
+- custom utility functions for SMD computation
+- optional bootstrap utilities when confidence intervals are required
+
+Guidelines:
+- SMD is preferred over p-values when evaluating baseline balance
+- this section is particularly relevant in weighted, matched, or otherwise adjusted observational analyses
+- confidence intervals do not need to be included by default in every project
+- if confidence intervals are reported, the same bootstrap strategy should be applied consistently across all variables
+- when available, interpretation should consider both the point estimate and the uncertainty interval
+
+## Outcome Tables
+
+This section summarizes the main study outcomes in the analytical cohort.
+
+Typical outputs:
+- event counts
+- event proportions
+- outcome frequencies by exposure or treatment group
+- outcome summaries by relevant strata when appropriate
+
+Typical libraries:
+- pandas
+- numpy
+
+Optional:
+- summaries for time-to-event variables
+- descriptive follow-up summaries
+- incidence summaries by subgroup
+
+Guidelines:
+- all outcomes must follow the exact definitions established in `01_dataset.qmd`
+- reporting should be clear and clinically interpretable
+- this section should remain descriptive unless the project explicitly requires inferential tabulation here
+
+## Subgroup Analysis Tables
+
+This section provides descriptive or comparative tables for predefined subgroups.
+
+Typical subgroup definitions:
+- age categories
+- comorbidity burden
+- sex
+- disease subtype
+- treatment history
+- baseline severity group
+
+Typical libraries:
+- pandas
+- numpy
+
+Guidelines:
+- subgroup definitions should be clinically or methodologically justified
+- ensure adequate sample size within each subgroup before reporting detailed results
+- avoid excessive fragmentation that produces unstable summaries
+- use consistent formatting with the main tables
+
+## Sensitivity Analysis Tables
+
+This section reports tables associated with alternative analytical scenarios.
+
+Typical scenarios:
+- alternative cohort definitions
+- alternative missing data handling rules
+- alternative subgroup restrictions
+- broader or narrower analytical populations
+
+Typical libraries:
+- pandas
+- numpy
+
+Guidelines:
+- sensitivity tables should help assess robustness of the primary descriptive findings
+- differences from the main analysis should be easy to interpret
+- assumptions underlying each sensitivity scenario should be explicit
+
+## Export Tables
+
+This section saves the generated tables for downstream reporting and manuscript preparation.
+
+Typical formats:
+- CSV
+- Excel
+- optional manuscript-ready formats when needed
+
+Typical libraries:
+- pandas
+- pathlib
+
+Guidelines:
+- use consistent and descriptive file names
+- save one file per table whenever practical
+- ensure that exported tables correspond exactly to the results shown in the notebook
+- keep output paths explicit and reproducible
+
+## Session Info
+
+This section records the execution context for reproducibility.
+
+Typical outputs:
+- Python version
+- package versions
+- execution date or timestamp
+
+Typical libraries:
+- sys
+- platform
+- pandas
+- numpy

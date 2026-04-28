@@ -1,0 +1,115 @@
+---
+title: "03 Model"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Setup
+
+This section initializes the environment for model development.
+
+Typical libraries:
+- pandas
+- numpy
+- scikit-learn
+- pathlib
+
+Guidelines:
+- load only modeling-related libraries
+- do not perform data transformations here
+
+## Load Analytical Dataset
+
+This section loads the final analytical dataset from 01_dataset.qmd.
+
+Typical libraries:
+- pandas
+- pathlib
+
+Guidelines:
+- use the single source of truth dataset
+- do not modify the dataset here
+
+## Data Splitting
+
+This section prepares train/validation/test splits.
+
+Typical libraries:
+- scikit-learn
+
+Guidelines:
+- ensure reproducibility with fixed random seeds
+- stratify by outcome when appropriate
+- document split proportions
+
+## Model Training
+
+This section trains the predictive models.
+
+Typical libraries:
+- scikit-learn
+- xgboost or other ML libraries
+
+Guidelines:
+- train on the training set only
+- use cross-validation for hyperparameter tuning
+- document model specifications
+
+## Model Validation
+
+This section evaluates model performance.
+
+Typical libraries:
+- scikit-learn
+- numpy
+
+Guidelines:
+- evaluate on validation/test sets
+- report standard metrics (AUC, accuracy, etc.)
+- include confidence intervals when possible
+
+## Model Performance Metrics
+
+This section computes and reports model metrics.
+
+Typical outputs:
+- confusion matrices
+- ROC curves
+- calibration plots
+
+Guidelines:
+- include both overall and subgroup performance
+- ensure metrics align with clinical relevance
+
+## Model Explainability
+
+This section provides interpretability analyses.
+
+Typical outputs:
+- feature importance plots
+- SHAP values
+- partial dependence plots
+
+Guidelines:
+- focus on clinically interpretable features
+- avoid overfitting explanations
+
+## Export Model Results
+
+This section saves model outputs and predictions.
+
+Typical formats:
+- model pickles
+- prediction CSV
+- performance summaries
+
+Guidelines:
+- save predictions for downstream use
+- ensure reproducible model loading
+
+## Session Info
+
+Record environment for reproducibility.

@@ -1,0 +1,345 @@
+---
+title: "Dataset Preparation"
+---
+
+## Setup
+
+This section initializes the execution environment and defines project-level constants, paths, and reproducibility settings.
+
+Typical libraries:
+- pandas
+- numpy
+- pathlib
+- warnings
+- datetime
+- tqdm (optional, for progress monitoring)
+
+Recommended tasks:
+- define input and output directories
+- configure warnings
+- set fixed parameters and study cutoffs
+- define reusable project constants
+
+## Pipeline Functions
+
+This section defines the reusable functions that support the full dataset pipeline.
+
+Typical libraries:
+- pandas
+- numpy
+- scikit-learn
+- pathlib
+
+Typical functions:
+- source loaders for text, CSV, parquet, or Excel inputs
+- column standardization helpers
+- date parsing helpers
+- quality control helpers
+- imputation helpers
+
+Recommended methodology:
+- define all reusable functions here
+- avoid redefining functions later in the notebook
+- keep functions modular and side-effect free
+
+## Data Sources and Input Management
+
+This section documents all input sources used in the project and how they are accessed.
+
+Typical libraries:
+- pandas
+- pathlib
+
+Possible input sources:
+- delimited text files
+- CSV files
+- parquet files
+- Excel files
+- precomputed intermediate files
+
+Recommended methodology:
+- make the source of each dataset explicit
+- load one source domain into one object
+- keep loading logic separate from downstream transformations
+
+## Data Extraction and Import
+
+This section performs the actual import of all source datasets required for the analysis.
+
+Typical libraries:
+- pandas
+
+Typical methodology:
+- use `pd.read_csv()` for text or CSV files
+- use `pd.read_parquet()` for parquet files
+- use `pd.read_excel()` for Excel files
+- apply only minimal harmonization at import time, such as:
+  - date parsing
+  - type coercion
+  - standardization of obvious malformed values
+
+This section should not include:
+- cohort filtering
+- feature engineering
+- imputation
+- analytical derivations
+
+## Initial Source QC
+
+This section performs a first structural review of each imported dataset before integration.
+
+Typical libraries:
+- pandas
+- numpy
+
+Typical checks:
+- number of rows and columns
+- unique identifiers
+- duplicated keys
+- missingness in key variables
+- date parsing success
+- obvious invalid values
+
+Recommended methodology:
+- validate each source independently
+- detect ingestion problems before merging datasets
+
+## Dataset Construction
+
+This section integrates all imported sources into a single analytical structure.
+
+Typical libraries:
+- pandas
+
+Typical methodology:
+- use `merge`, `concat`, `groupby`, `pivot`, and reshaping operations
+- define the unit of analysis explicitly
+- validate row counts and identifiers after each merge
+- keep the construction sequence transparent and reproducible
+
+Typical checks after each merge:
+- row count changes
+- duplicated identifiers
+- unexpected inflation or loss of records
+
+## Cohort Definition
+
+This section applies the inclusion and exclusion criteria that define the analytical population.
+
+Typical libraries:
+- pandas
+- numpy
+
+Recommended methodology:
+- apply filters sequentially
+- store counts after each filtering step
+- keep cohort logic separate from feature engineering
+- ensure that every exclusion is reproducible and traceable
+
+Typical criteria:
+- age restrictions
+- therapy eligibility
+- minimum follow-up
+- valid baseline window
+- data completeness requirements
+
+## Feature Engineering
+
+This section derives the analytical variables used in downstream analysis.
+
+Typical libraries:
+- pandas
+- numpy
+
+Typical operations:
+- variable renaming
+- categorical recoding
+- date-derived features
+- baseline and follow-up summaries
+- exposure derivation
+- outcome derivation
+- subgroup indicators
+- disease classification variables
+
+Recommended methodology:
+- create features only after the cohort is fixed
+- document derived variables clearly
+- keep domain logic explicit
+
+## Missing Data Assessment
+
+This section evaluates the extent and structure of missingness in the analytical variables.
+
+Typical libraries:
+- pandas
+- numpy
+
+Recommended methodology:
+- quantify missingness per variable
+- review missingness in key baseline features
+- check whether missingness differs by subgroup, treatment, or cohort
+- identify variables eligible for imputation and variables that should remain untouched
+
+Typical outputs:
+- missing counts
+- missing percentages
+- optional subgroup-specific missingness summaries
+
+## Imputation Strategy and Application
+
+This section defines and applies the missing data handling rules in a consistent way across variable types.
+
+Typical libraries:
+- pandas
+- numpy
+- scikit-learn
+
+Recommended baseline strategy:
+- continuous variables:
+  - simple median imputation when a deterministic and transparent rule is sufficient
+- categorical variables:
+  - explicit missing category such as `"Missing"` when clinically and analytically appropriate
+- binary variables:
+  - preserve as missing unless there is a justified and documented coding rule
+- optional missingness indicators:
+  - create flags such as `var_missing = var.isna().astype(int)`
+
+Advanced strategy when multivariable structure matters:
+- use `sklearn.impute.IterativeImputer`
+- use a stable estimator such as `BayesianRidge`
+- impute eligible baseline variables jointly
+- include auxiliary predictors when clinically justified
+- constrain impossible values when needed
+
+Recommended rules:
+- apply the same imputation logic by data type across the project
+- do not impute outcomes
+- do not impute cohort-defining variables unless explicitly justified
+- document which variables are eligible for imputation and which are excluded
+
+## Post-Imputation Validation
+
+This section verifies that imputation behaved as expected.
+
+Typical libraries:
+- pandas
+- numpy
+
+Typical checks:
+- no remaining unexpected missingness in imputed variables
+- no impossible generated values
+- no negative values in variables that must be non-negative
+- preserved shape and alignment of the dataset
+- comparison of distributions before and after imputation
+
+Recommended methodology:
+- validate imputation outputs before finalizing the dataset
+- confirm that only intended variables were modified
+
+## Data Validation
+
+This section performs structural and clinical validation after construction, feature engineering, and imputation.
+
+Typical libraries:
+- pandas
+- numpy
+
+Typical checks:
+- duplicated rows
+- duplicated identifiers
+- join integrity
+- temporal consistency
+- clinically implausible values
+- out-of-range values
+- consistency between related variables
+
+Recommended methodology:
+- run both structural and domain-aware QC
+- keep validation explicit and reproducible
+
+## CONSORT Diagrams
+
+This section documents the cohort selection workflow in a reproducible way.
+
+Typical libraries:
+- pandas
+- plotnine, matplotlib, or other plotting tools if needed
+
+Recommended methodology:
+- ensure that diagram counts match the filtering logic exactly
+- distinguish the main analytical cohort from broader or alternative cohorts
+
+### Primary cohort
+
+This subsection presents the main analytical cohort used for the primary analysis.
+
+### Secondary or full cohort
+
+This subsection presents a broader or alternative cohort used for sensitivity analyses or descriptive extension.
+
+## Final Dataset QC
+
+This section performs the final review before saving the analytical dataset.
+
+Typical libraries:
+- pandas
+- numpy
+
+Typical checks:
+- final dimensions
+- final variable availability
+- missingness after imputation
+- balance of outcomes or exposures
+- sanity checks on derived variables
+- consistency of final identifiers
+
+Recommended methodology:
+- use this section as the final release gate before export
+
+## Preview
+
+This section provides a compact inspection of the resulting dataset.
+
+Typical tools:
+- `head()`
+- `sample()`
+- `info()`
+- selected summaries
+
+Recommended methodology:
+- inspect only
+- do not introduce new transformations here
+
+## Save Final Dataset
+
+This section saves the final analytical datasets and any required intermediate outputs.
+
+Typical libraries:
+- pandas
+- pathlib
+
+Typical outputs:
+- parquet
+- CSV
+- optional metadata summaries
+
+Recommended methodology:
+- use explicit object names such as `primary_dataset`, `full_dataset`, or `final_dataset`
+- save to stable output paths
+- ensure that exported files correspond exactly to the validated final objects
+
+## Session Info
+
+This section records the execution context for reproducibility.
+
+Typical libraries:
+- sys
+- platform
+- pandas
+- numpy
+- sklearn
+
+Recommended outputs:
+- Python version
+- package versions
+- execution date

@@ -1,0 +1,148 @@
+---
+title: "03 Figures"
+format: html
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Setup
+
+This section initializes the environment for figure generation.
+
+Typical libraries:
+- pandas
+- numpy
+- matplotlib
+- seaborn
+- pathlib
+
+Guidelines:
+- load only visualization-related libraries
+- do not perform transformations here
+
+## Load Analytical Inputs
+
+This section loads the data required for plotting.
+
+Possible inputs:
+- final dataset from 01_dataset
+- tables from 02_tables
+
+Guidelines:
+- do not recompute analytical results
+- use previous outputs as source of truth
+
+## Cohort Flow Figures
+
+This section visualizes cohort selection.
+
+Typical outputs:
+- CONSORT diagram
+- flow plots
+
+Guidelines:
+- counts must match 01_dataset exactly
+
+## Data Completeness Figures
+
+This section visualizes missingness.
+
+Typical outputs:
+- missingness bar plots
+- heatmaps
+
+Libraries:
+- seaborn
+- matplotlib
+- missingno (optional)
+
+## Baseline Distribution Figures
+
+This section visualizes baseline variables.
+
+Typical outputs:
+- histograms
+- density plots
+- boxplots
+- count plots
+
+Guidelines:
+- align with Table 1 variables
+
+## Covariate Balance Figures
+
+This section visualizes covariate balance.
+
+Typical outputs:
+- Love plots (SMD)
+- pre/post weighting plots
+
+Guidelines:
+- must match SMD values in 02_tables
+- if 95% CI for SMD is available, it may be displayed
+
+## Outcome Figures
+
+This section visualizes outcomes.
+
+Typical outputs:
+- event rate bar plots
+- Kaplan–Meier curves (if applicable)
+- cumulative incidence plots
+
+Guidelines:
+- must match definitions from 01_dataset
+- complement, not duplicate, tables
+
+## Subgroup Figures
+
+This section visualizes subgroup results.
+
+Typical outputs:
+- stratified plots
+- forest plots
+- faceted distributions
+
+Guidelines:
+- consistent subgroup definitions with 02_tables
+- avoid small unstable groups
+
+## Sensitivity Analysis Figures
+
+This section visualizes robustness analyses.
+
+Typical outputs:
+- comparison plots (main vs sensitivity)
+- alternative cohort visualizations
+
+Guidelines:
+- directly comparable with main results
+
+## Figure Styling and Annotation
+
+This section standardizes figure appearance.
+
+Tasks:
+- define sizes
+- harmonize labels
+- consistent legends
+- consistent formatting
+
+## Export Figures
+
+This section saves figures.
+
+Formats:
+- PNG
+- PDF
+- SVG
+
+Guidelines:
+- one file per figure
+- consistent naming
+
+## Session Info
+
+Record environment for reproducibility.

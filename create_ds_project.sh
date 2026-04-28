@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 /path/to/project_root"
+  exit 1
+fi
+
+PROJECT_ROOT="$1"
+ANALYSIS_DIR="${PROJECT_ROOT}/analysis"
+SQL_DIR="${ANALYSIS_DIR}/sql"
+REF_DIR="${ANALYSIS_DIR}/ref"
+TABLES_DIR="${ANALYSIS_DIR}/tables"
+FIGURES_DIR="${ANALYSIS_DIR}/figures"
+
+mkdir -p "$PROJECT_ROOT"
+mkdir -p "$ANALYSIS_DIR"
+mkdir -p "$SQL_DIR"
+mkdir -p "$REF_DIR"
+mkdir -p "$TABLES_DIR"
+mkdir -p "$FIGURES_DIR"
+
+cat > "${PROJECT_ROOT}/CLAUDE.md" <<'EOT'
+# PROJECT CONTEXT
+
+## Objective
+Define the clinical or analytical objective clearly.
+
+Examples:
+- Predict ICU mortality at 72h
+- Evaluate treatment effectiveness using IPTW
+- Build a clinical decision support workflow
+- Generate publication-ready descriptive and analytical outputs
+
+## Data Source
+Document:
+- source system or database
+- temporal coverage
+- unit of analysis
+- main domains included
+
+Examples:
+- hospital EHR
+- administrative claims
+- ICU research database
+- population-level registry
+
+## Key Constraints
+- Observational data may contain confounding
+- Missing data must be handled explicitly
+- Temporal alignment must be checked
+- Cohort definition must be reproducible
+- Clinical assumptions must be traceable
+
+## Expected Outputs
+- Clean analytical dataset
+- Reproducible tables
+- Reproducible figures
+- Traceable scientific references
+- Project documentation suitable for collaboration and audit
+
+## Project Rules
+- All code must be written in English
+- Prefer modular workflows over monolithic notebooks
+- SQL logic should be externalized in analysis/sql/
+- Scientific and protocol references should be stored in analysis/ref/
+- Avoid manual edits after output generation
+
+## Documentation
+Refer to:
+- README.md for project overview
+- analysis/CLAUDE.md for workflow execution rules
+- analysis/sql/CLAUDE.md for SQL extraction rules
+EOT
+
+cat > "${PROJECT_ROOT}/README.md" <<'EOT'
+# Project Overview
+
+This repository contains a reproducible data science workflow for clinical or health-related data analysis.
+
+## Recommended Structure
+
+```text
+project_root/
+├── CLAUDE.md
+├── README.md
+└── analysis/
+    ├── CLAUDE.md
+    ├── ref/
+    ├── sql/
+    │   └── CLAUDE.md
+    ├── tables/
+    ├── figures/
+    ├── 01_dataset.qmd
+    ├── 02_tables.qmd
+    └── 03_figures.qmd
+EOT
+
+cat > "${ANALYSIS_DIR}/CLAUDE.md" <<'EOT'
+# Workflow Execution Rules
+
+## Notebook Structure
+- 01_dataset.qmd: Data extraction, cleaning, and preparation
+- 02_tables.qmd: Generate tables for analysis
+- 03_figures.qmd: Generate figures
+
+## Rules
+- Use R or Python for analysis
+- Store outputs in tables/ and figures/
+- Reference SQL files from sql/
+- Store references in ref/
+EOT
+
+cat > "${SQL_DIR}/CLAUDE.md" <<'EOT'
+# SQL Extraction Rules
+
+## Rules
+- Write clear, commented SQL
+- Use CTEs for complex queries
+- Ensure reproducibility
+- Document assumptions
+EOT
+
+touch "${ANALYSIS_DIR}/01_dataset.qmd"
+touch "${ANALYSIS_DIR}/02_tables.qmd"
+touch "${ANALYSIS_DIR}/03_figures.qmd"
