@@ -7,6 +7,7 @@ import argparse
 import shutil
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -17,6 +18,31 @@ PDF_PARTS_DIR = ANALYSIS_DIR / "render_pdf_parts"
 LOG_DIR = ANALYSIS_DIR / "render_logs"
 PDF_PREAMBLE = ANALYSIS_DIR / "pdf_preamble.tex"
 DEFAULT_OUTPUT = RENDERED_DIR / "analysis_notebooks_combined.pdf"
+
+
+def _format_duration(seconds: float) -> str:
+    seconds = max(0, int(round(seconds)))
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    if hours:
+        return f"{hours}h {minutes:02d}m {seconds:02d}s"
+    if minutes:
+        return f"{minutes}m {seconds:02d}s"
+    return f"{seconds}s"
+
+
+def _progress_line(completed: int, total: int, started_at: float, label: str) -> str:
+    percent = (completed / total * 100) if total else 100.0
+    elapsed = time.monotonic() - started_at
+    if completed:
+        eta = elapsed / completed * (total - completed)
+        eta_text = _format_duration(eta)
+    else:
+        eta_text = "estimating"
+    return (
+        f"[{completed}/{total} | {percent:5.1f}%] {label} "
+        f"| elapsed {_format_duration(elapsed)} | ETA {eta_text}"
+    )
 
 
 def _find_notebooks() -> list[Path]:
@@ -301,7 +327,19 @@ def main() -> None:
 
     pdf_paths: list[Path] = []
     failed: list[Path] = []
-    for notebook in selected:
+    total_notebooks = len(selected)
+    started_at = time.monotonic()
+    print(_progress_line(0, total_notebooks, started_at, "Starting"))
+    for idx, notebook in enumerate(selected, start=1):
+        print(
+            "\n"
+            + _progress_line(
+                idx - 1,
+                total_notebooks,
+                started_at,
+                f"Next: {notebook.relative_to(REPO_ROOT)}",
+            )
+        )
         if args.merge_existing:
             pdf_path = PDF_PARTS_DIR / f"{notebook.stem}.pdf"
             fallback_pdf_path = notebook.parent / RENDERED_DIR.name / f"{notebook.stem}.pdf"
@@ -314,6 +352,7 @@ def main() -> None:
             else:
                 print(f"  ERROR: no existing PDF found for {notebook.relative_to(REPO_ROOT)}")
                 failed.append(notebook)
+            print(_progress_line(idx, total_notebooks, started_at, "Notebook selection checked"))
             continue
 
         pdf_path = render_pdf(notebook, quiet=not args.verbose)
@@ -321,6 +360,7 @@ def main() -> None:
             failed.append(notebook)
         else:
             pdf_paths.append(pdf_path)
+        print(_progress_line(idx, total_notebooks, started_at, "Notebook render finished"))
 
     if failed:
         print("\nFailed notebooks:")
@@ -330,6 +370,7 @@ def main() -> None:
             raise SystemExit("Strict mode: no PDF will be merged because at least one notebook failed.")
 
     if not args.no_master_toc:
+        print("\nRendering generated master table of contents...")
         toc_pdf = render_master_toc(selected, args.title, quiet=not args.verbose)
         if toc_pdf is not None:
             pdf_paths.insert(0, toc_pdf)
@@ -337,7 +378,9 @@ def main() -> None:
     if not pdf_paths:
         raise SystemExit("No valid PDFs to merge.")
 
+    print("\nFinal step: merging rendered PDFs.")
     merge_pdfs(pdf_paths, Path(args.output))
+    print(_progress_line(total_notebooks, total_notebooks, started_at, "Done"))
 
 
 if __name__ == "__main__":
